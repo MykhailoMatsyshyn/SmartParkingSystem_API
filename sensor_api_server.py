@@ -134,7 +134,7 @@ state = {
     'free_spots': 50,
     'co_level': 50.0,
     'nox_level': 30.0,
-    'temperature': 15.0,
+    'temperature': 7.5,  # Реалістична базова температура (5-10°C)
     'time_counter': 0
 }
 
@@ -183,20 +183,33 @@ def generate_sensor_data():
     noise = random.uniform(-8, 8)
     state['nox_level'] = max(0, min(500, base_nox + noise))
     
-    # Генеруємо температуру (симуляція денного циклу)
+    # Генеруємо температуру в реалістичному діапазоні (5-10°C)
+    # З логічними зв'язками з іншими сенсорами
     day_progress = (state['time_counter'] % 17280) / 17280.0
-    if day_progress < 0.25:
-        day_temp = -10 + day_progress * 60
-    elif day_progress < 0.5:
-        day_temp = 5 + (day_progress - 0.25) * 80
-    elif day_progress < 0.75:
-        day_temp = 25 + (day_progress - 0.5) * 60
-    else:
-        day_temp = 40 - (day_progress - 0.75) * 120
     
-    co_effect = (state['co_level'] / 500.0) * 5.0
-    noise = random.uniform(-2, 2)
-    state['temperature'] = max(-10, min(40, day_temp + co_effect + noise))
+    # Базова температура в реалістичному діапазоні
+    if day_progress < 0.25:
+        # Ніч (0-6 год): 5-7°C (трохи прохолодніше)
+        base_temp = 5.0 + day_progress * 8.0
+    elif day_progress < 0.5:
+        # Ранок (6-12 год): 7-9°C (поступове потепління)
+        base_temp = 7.0 + (day_progress - 0.25) * 8.0
+    elif day_progress < 0.75:
+        # День (12-18 год): 9-10°C (найтепліше)
+        base_temp = 9.0 + (day_progress - 0.5) * 4.0
+    else:
+        # Вечір (18-24 год): 10-6°C (поступове охолодження)
+        base_temp = 10.0 - (day_progress - 0.75) * 16.0
+    
+    # Логічний зв'язок: високий CO (багато машин) → трохи підвищує температуру
+    # (відпрацьовані гази від двигунів)
+    co_effect = (state['co_level'] / 500.0) * 2.0  # Максимум +2°C при CO=500
+    
+    # Невеликий шум для реалістичності
+    noise = random.uniform(-0.75, 0.75)  # ±0.75°C
+    
+    # Фінальна температура в реалістичному діапазоні 5-10°C
+    state['temperature'] = max(5.0, min(10.0, base_temp + co_effect + noise))
     
     # Генеруємо масив датчиків для кожного місця парковки (100 місць)
     # 0 = вільне місце, 1 = зайняте місце
@@ -228,7 +241,14 @@ def get_sensor_data():
     """Endpoint для отримання поточних даних сенсорів"""
     logger.info("🔍 Генерую дані сенсорів...")
     data = generate_sensor_data()
-    logger.info(f"✅ Дані згенеровано: free_spots={data['free_spots']}, co={data['co_level']}, temp={data['temperature']}")
+    logger.info(f"✅ Дані згенеровано:")
+    logger.info(f"   - free_spots: {data['free_spots']}")
+    logger.info(f"   - co_level: {data['co_level']}")
+    logger.info(f"   - nox_level: {data['nox_level']}")
+    logger.info(f"   - temperature: {data['temperature']}")
+    logger.info(f"   - parking_occupied: {data['parking_occupied']}")
+    logger.info(f"   - timestamp: {data['timestamp']}")
+    logger.info(f"📤 Відправляю JSON: {json.dumps(data)}")
     return jsonify(data)
 
 @app.route('/api/sensor-data/stream', methods=['GET'])
