@@ -1,9 +1,0 @@
-[phases.setup]
-nixPkgs = ["python310", "pip"]
-
-[phases.install]
-cmds = ["pip install -r requirements_api.txt"]
-
-[start]
-cmd = "python sensor_api_server.py"
-
