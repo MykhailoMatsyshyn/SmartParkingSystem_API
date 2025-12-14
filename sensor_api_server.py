@@ -9,7 +9,9 @@ import json
 import random
 import time
 import os
+import sys
 import logging
+import warnings
 from datetime import datetime
 
 # Firebase Admin SDK
@@ -82,13 +84,22 @@ except ImportError:
 app = Flask(__name__)
 CORS(app)  # Дозволяє запити з мобільного додатку
 
+# Прибираємо попередження про Python версію (вони червоні)
+warnings.filterwarnings('ignore', category=FutureWarning)
+
 # Налаштування логування
+# Використовуємо stdout для всіх логів (не stderr), щоб уникнути червоного кольору
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)-8s | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt='%Y-%m-%d %H:%M:%S',
+    stream=sys.stdout  # Виводимо в stdout замість stderr
 )
 logger = logging.getLogger(__name__)
+
+# Вимкнути стандартні Flask логи (вони виводяться в stderr і червоні)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.WARNING)  # Показуємо тільки WARNING і вище (не INFO)
 
 # Додаємо middleware для логування всіх запитів
 @app.before_request
