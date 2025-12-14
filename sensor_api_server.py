@@ -41,13 +41,13 @@ try:
                 db = firestore.client()
                 FIREBASE_ENABLED = True
                 os.unlink(temp_cred_file)  # Видаляємо тимчасовий файл
-                logger.info("✅ Firebase підключено (з змінної середовища)")
+                print("✅ Firebase підключено (з змінної середовища)")
             else:
-                logger.warning("⚠️  FIREBASE_CREDENTIALS не є Service Account key (type != 'service_account')")
+                print("⚠️  FIREBASE_CREDENTIALS не є Service Account key (type != 'service_account')")
         except json.JSONDecodeError:
-            logger.warning("⚠️  FIREBASE_CREDENTIALS не є валідним JSON")
+            print("⚠️  FIREBASE_CREDENTIALS не є валідним JSON")
         except Exception as e:
-            logger.error(f"⚠️  Помилка ініціалізації Firebase зі змінної середовища: {e}")
+            print(f"⚠️  Помилка ініціалізації Firebase зі змінної середовища: {e}")
     elif os.path.exists(firebase_creds_file):
         # Використовуємо credentials з файлу (для локальної розробки)
         try:
@@ -58,26 +58,26 @@ try:
                     firebase_admin.initialize_app(cred)
                     db = firestore.client()
                     FIREBASE_ENABLED = True
-                    logger.info("✅ Firebase підключено (з файлу)")
+                    print("✅ Firebase підключено (з файлу)")
                 else:
-                    logger.warning("⚠️  firebase-credentials.json не є Service Account key (type != 'service_account')")
-                    logger.info("   Отримайте Service Account key з Firebase Console → Project Settings → Service accounts")
+                    print("⚠️  firebase-credentials.json не є Service Account key (type != 'service_account')")
+                    print("   Отримайте Service Account key з Firebase Console → Project Settings → Service accounts")
         except json.JSONDecodeError:
-            logger.warning("⚠️  firebase-credentials.json не є валідним JSON файлом")
+            print("⚠️  firebase-credentials.json не є валідним JSON файлом")
         except Exception as e:
-            logger.error(f"⚠️  Помилка ініціалізації Firebase: {e}")
-            logger.info("   Перевірте правильність firebase-credentials.json")
+            print(f"⚠️  Помилка ініціалізації Firebase: {e}")
+            print("   Перевірте правильність firebase-credentials.json")
     else:
-        logger.warning("⚠️  Firebase не налаштовано")
-        logger.info("   Для локальної розробки: створіть firebase-credentials.json")
-        logger.info("   Для деплою: додайте змінну FIREBASE_CREDENTIALS в Railway")
-        logger.info("   Сервер працюватиме без синхронізації з Firebase")
+        print("⚠️  Firebase не налаштовано")
+        print("   Для локальної розробки: створіть firebase-credentials.json")
+        print("   Для деплою: додайте змінну FIREBASE_CREDENTIALS в Railway")
+        print("   Сервер працюватиме без синхронізації з Firebase")
         
 except ImportError:
     FIREBASE_ENABLED = False
     db = None
-    logger.warning("⚠️  Firebase Admin SDK не встановлено. Встановіть: pip install firebase-admin")
-    logger.info("   Сервер працюватиме без синхронізації з Firebase")
+    print("⚠️  Firebase Admin SDK не встановлено. Встановіть: pip install firebase-admin")
+    print("   Сервер працюватиме без синхронізації з Firebase")
 
 app = Flask(__name__)
 CORS(app)  # Дозволяє запити з мобільного додатку
